@@ -59,23 +59,23 @@
     flex-wrap:wrap;
     background:rgba(255,255,255,0.05);
     border-bottom:1px solid rgba(255,255,255,0.08);
-    padding:10px 14px;
+    padding:5px 10px;
     /* safe area top (notch) */
-    padding-top:max(10px, env(safe-area-inset-top));
+    padding-top:max(5px, env(safe-area-inset-top));
   }
   .hud-item {
     display:flex; align-items:center; gap:5px;
-    color:#fff; font-size:1.05rem;
+    color:#fff; font-size:0.9rem;
     white-space:nowrap;
   }
   .hud-item .label {
-    color:#888; font-size:0.75rem;
+    color:#888; font-size:0.65rem;
     font-family:'Nunito',sans-serif;
     text-transform:uppercase;
   }
-  .hud-item .val { font-size:1.2rem; color:#ffe566; }
+  .hud-item .val { font-size:1rem; color:#ffe566; }
   #lives-display { display:flex; gap:3px; }
-  .heart { font-size:1.15rem; line-height:1; }
+  .heart { font-size:0.95rem; line-height:1; }
   .heart.lost { filter:grayscale(1); opacity:0.3; }
   #skin-badge {
     font-size:0.82rem; padding:3px 11px; border-radius:20px;
@@ -185,7 +185,7 @@
     flex:0 0 auto;
     display:none; /* JS mostra em touch */
     width:100%;
-    padding:6px 16px max(8px, env(safe-area-inset-bottom));
+    padding:4px 12px max(4px, env(safe-area-inset-bottom));
     justify-content:space-between;
     align-items:center;
     background:rgba(0,0,0,0.3);
@@ -193,14 +193,14 @@
   }
   #mobile-controls.visible { display:flex; }
 
-  .ctrl-group { display:flex; gap:12px; align-items:center; }
+  .ctrl-group { display:flex; gap:8px; align-items:center; }
 
   .ctrl-btn {
-    width:68px; height:68px;
+    width:58px; height:58px;
     border-radius:50%;
     border:2.5px solid rgba(255,255,255,0.22);
     background:rgba(255,255,255,0.07);
-    color:#fff; font-size:1.65rem;
+    color:#fff; font-size:1.4rem;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
     user-select:none; -webkit-user-select:none;
@@ -225,7 +225,7 @@
     background:rgba(80,180,255,0.22);
   }
   #btn-jump {
-    width:74px; height:74px; font-size:1.85rem;
+    width:64px; height:64px; font-size:1.6rem;
     border-color:rgba(255,200,40,0.55);
     background:rgba(255,170,0,0.12);
   }
@@ -235,7 +235,7 @@
     box-shadow:0 1px 0 rgba(0,0,0,0.5), 0 0 28px rgba(255,200,40,0.6);
   }
   #btn-shoot {
-    width:70px; height:70px; font-size:1.7rem;
+    width:60px; height:60px; font-size:1.45rem;
     border-color:rgba(255,70,110,0.55);
     background:rgba(220,40,80,0.12);
   }
@@ -355,11 +355,11 @@ function resizeCanvas(){
   const hintH = (hint && hint.style.display !== 'none')
                   ? hint.getBoundingClientRect().height : 0;
 
-  // Nudge: push canvas a bit down (max 5% of available, capped at 20px)
-  const nudge = Math.min(Math.floor((vh - hudH - ctrlH - hintH) * 0.05), 20);
+  // No nudge - use all available space
+  const nudge = 0;
 
-  // Available height after fixed rows AND nudge
-  const availH = vh - hudH - ctrlH - hintH - nudge - 2;
+  // Available height after fixed rows
+  const availH = vh - hudH - ctrlH - hintH - 2;
   const availW = vw;
 
   const scaleW = availW / GAME_W;
