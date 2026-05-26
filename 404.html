@@ -159,6 +159,38 @@
   .skin-tag { font-size:0.52rem; color:#666; font-family:'Nunito',sans-serif; text-align:center; }
   .skin-card.selected .skin-label { color:#ffe566; }
 
+  /* ── Skin bloqueada ── */
+  .skin-card.locked {
+    opacity:0.55;
+    cursor:default;
+    border-color:rgba(255,255,255,0.04);
+    position:relative;
+    overflow:hidden;
+  }
+  .skin-card.locked canvas { filter:grayscale(1) brightness(0.5); }
+  .skin-card.locked .skin-label { color:#666; }
+  .skin-card.locked .skin-tag  { color:#555; }
+  .skin-lock-overlay {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.55); border-radius:9px; gap:1px;
+  }
+  .skin-lock-icon  { font-size:1.1rem; line-height:1; }
+  .skin-lock-pts   {
+    font-size:0.56rem; color:#ffcc44;
+    font-family:'Nunito',sans-serif; font-weight:900;
+    text-align:center; line-height:1.2;
+  }
+
+  /* ── Progresso total ── */
+  #total-score-bar {
+    width:100%; text-align:center;
+    font-family:'Nunito',sans-serif; font-size:0.7rem; color:#666;
+    padding:2px 0 0;
+    flex-shrink:0;
+  }
+  #total-score-bar span { color:#ffe566; font-weight:900; }
+
   #start-btn {
     background:linear-gradient(135deg,#ffb800,#ff6b00); color:#fff; border:none;
     border-radius:50px; padding:10px 32px; font-family:'Fredoka One',cursive;
@@ -333,6 +365,7 @@
         <div class="subtitle">Pule sobre inimigos ou ataque com projéteis!</div>
         <div id="skin-section">
           <h3>✦ ESCOLHA SEU PERSONAGEM ✦</h3>
+          <div id="total-score-bar">🏆 Total acumulado: <span id="total-val">0</span> pts</div>
           <div id="skin-grid"></div>
         </div>
         <button id="start-btn">▶ JOGAR</button>
@@ -710,48 +743,67 @@ function stopBGM(){
 //  SKINS
 // ══════════════════════════════
 const SKINS = [
-  { id:'classic',  name:'Clássico',   tag:'⭐ Padrão',
+  { id:'classic',  name:'Clássico',   tag:'⭐ Padrão',   cost:0,
     body:['#fff7aa','#ffd700','#ff9900'], outline:'#cc7700',
     eye:'#333', pupil:'#fff', cheek:'#ff6688',
     mouth:'#993300', teeth:'#fff',
     trail:'255,215,0', proj:'#ffe566', glow:'#ffcc00', special:null },
-  { id:'fire',     name:'Chamas',     tag:'🔥 Feroz',
+  { id:'fire',     name:'Chamas',     tag:'🔥 Feroz',    cost:100,
     body:['#ffeeaa','#ff6600','#cc2200'], outline:'#880000',
     eye:'#fff', pupil:'#ffcc00', cheek:'#ff4400',
     mouth:'#660000', teeth:'#ffcc00',
     trail:'255,100,0', proj:'#ff5500', glow:'#ff9900', special:'fire' },
-  { id:'ice',      name:'Gelo',       tag:'❄️ Frio',
+  { id:'ice',      name:'Gelo',       tag:'❄️ Frio',     cost:250,
     body:['#eef9ff','#88ddff','#2299dd'], outline:'#1166aa',
     eye:'#003366', pupil:'#eef9ff', cheek:'#88ccff',
     mouth:'#114488', teeth:'#ddffff',
     trail:'100,220,255', proj:'#66eeff', glow:'#00aaff', special:'ice' },
-  { id:'shadow',   name:'Sombra',     tag:'👻 Misterioso',
+  { id:'shadow',   name:'Sombra',     tag:'👻 Misterioso', cost:500,
     body:['#9966dd','#4422aa','#110033'], outline:'#220055',
     eye:'#fff', pupil:'#dd44ff', cheek:'#8833cc',
     mouth:'#220044', teeth:'#cc88ff',
     trail:'160,80,255', proj:'#cc66ff', glow:'#aa00ff', special:'ghost' },
-  { id:'rainbow',  name:'Arco-íris',  tag:'🌈 Colorido',
+  { id:'rainbow',  name:'Arco-íris',  tag:'🌈 Colorido', cost:800,
     body:null, outline:'#fff',
     eye:'#222', pupil:'#fff', cheek:'#ff88bb',
     mouth:'#aa3366', teeth:'#fff',
     trail:'200,100,255', proj:'#ff88cc', glow:'#ffcc00', special:'rainbow' },
-  { id:'robot',    name:'Robô',       tag:'🤖 Metálico',
+  { id:'robot',    name:'Robô',       tag:'🤖 Metálico', cost:1200,
     body:['#dddddd','#999999','#444444'], outline:'#222',
     eye:'#00ffcc', pupil:'#004433', cheek:'#888',
     mouth:'#333', teeth:'#00ffcc',
     trail:'0,255,200', proj:'#00ffcc', glow:'#00ff88', special:'robot' },
-  { id:'vampire',  name:'Vampiro',    tag:'🧛 Sombrio',
+  { id:'vampire',  name:'Vampiro',    tag:'🧛 Sombrio',  cost:1800,
     body:['#ffeedd','#cc3344','#550011'], outline:'#220008',
     eye:'#ff0000', pupil:'#330000', cheek:'#cc2233',
     mouth:'#550011', teeth:'#ffe0e0',
     trail:'180,0,40', proj:'#dd1133', glow:'#ff0033', special:'vampire' },
-  { id:'alien',    name:'Alien',      tag:'👽 Espacial',
+  { id:'alien',    name:'Alien',      tag:'👽 Espacial', cost:2500,
     body:['#ccffcc','#44cc66','#116633'], outline:'#003311',
     eye:'#000', pupil:'#00ff88', cheek:'#55cc77',
     mouth:'#003311', teeth:'#aaffcc',
     trail:'80,220,100', proj:'#44ff88', glow:'#00ff44', special:'alien' },
 ];
 let selectedSkin = SKINS[0];
+
+// ══════════════════════════════
+//  PONTUAÇÃO ACUMULADA & DESBLOQUEIO
+// ══════════════════════════════
+let totalScore = parseInt(localStorage.getItem('bolinha_total') || '0', 10);
+
+function saveTotal(){ localStorage.setItem('bolinha_total', totalScore); }
+
+function isSkinUnlocked(skin){
+  return skin.cost === 0 || totalScore >= skin.cost;
+}
+
+function addToTotal(pts){
+  const before = totalScore;
+  totalScore += pts;
+  saveTotal();
+  // retorna lista de skins recém-desbloqueadas
+  return SKINS.filter(s => s.cost > 0 && before < s.cost && totalScore >= s.cost);
+}
 
 // ══════════════════════════════
 //  CANVAS / STATE
@@ -982,10 +1034,21 @@ function drawSmiley(cx, x, y, r, facing, attacking, blinking, squish, skin, fh){
 // ══════════════════════════════
 function buildSkinGrid(){
   const grid=document.getElementById('skin-grid');
+  if(!grid) return;
   grid.innerHTML='';
+
+  // Atualiza placar total
+  const tv=document.getElementById('total-val');
+  if(tv) tv.textContent=totalScore.toLocaleString('pt-BR');
+
   SKINS.forEach((skin,i)=>{
+    const unlocked = isSkinUnlocked(skin);
     const card=document.createElement('div');
-    card.className='skin-card'+(i===0?' selected':'');
+    card.className='skin-card'
+      + (skin===selectedSkin?' selected':'')
+      + (!unlocked?' locked':'');
+
+    // Preview canvas
     const pc=document.createElement('canvas');
     pc.width=62; pc.height=62;
     const pcx=pc.getContext('2d');
@@ -993,16 +1056,30 @@ function buildSkinGrid(){
     pcx.fillStyle='rgba(255,255,255,0.05)'; pcx.fill();
     drawSmiley(pcx,31,40,22,1,false,false,1,skin,0);
     card.appendChild(pc);
+
     const lbl=document.createElement('div'); lbl.className='skin-label'; lbl.textContent=skin.name;
     const tag=document.createElement('div'); tag.className='skin-tag'; tag.textContent=skin.tag;
     card.appendChild(lbl); card.appendChild(tag);
-    card.addEventListener('click',()=>{
-      document.querySelectorAll('.skin-card').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedSkin=skin;
-      document.getElementById('skin-badge').textContent=skin.tag+' '+skin.name;
-      playSound('select',0.6);
-    });
+
+    if(!unlocked){
+      // Overlay de cadeado com custo
+      const ov=document.createElement('div'); ov.className='skin-lock-overlay';
+      const ic=document.createElement('div'); ic.className='skin-lock-icon'; ic.textContent='🔒';
+      const pt=document.createElement('div'); pt.className='skin-lock-pts';
+      pt.textContent=skin.cost.toLocaleString('pt-BR')+' pts';
+      ov.appendChild(ic); ov.appendChild(pt);
+      card.appendChild(ov);
+    } else {
+      card.addEventListener('click',()=>{
+        if(!isSkinUnlocked(skin)) return;
+        document.querySelectorAll('.skin-card').forEach(c=>c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedSkin=skin;
+        document.getElementById('skin-badge').textContent=skin.tag+' '+skin.name;
+        playSound('select',0.6);
+      });
+    }
+
     grid.appendChild(card);
   });
 }
@@ -1353,18 +1430,41 @@ setupMobileBtn('btn-shoot', null, ()=>{
 //  GAME OVER / UI
 // ══════════════════════════════
 function showGameOver(){
+  // Adiciona pontos ao total acumulado
+  const newlyUnlocked = addToTotal(score);
+
   const ov=document.getElementById('overlay');
+  let unlockHTML = '';
+  if(newlyUnlocked.length > 0){
+    unlockHTML = `<div style="background:rgba(255,229,102,0.12);border:1px solid #ffe566;border-radius:10px;padding:8px 14px;text-align:center;">
+      <div style="font-size:0.75rem;color:#ffe566;font-family:'Nunito',sans-serif;font-weight:900;letter-spacing:1px;">✨ SKIN DESBLOQUEADA!</div>
+      ${newlyUnlocked.map(s=>`<div style="font-size:1rem;margin-top:2px;">${s.tag} ${s.name}</div>`).join('')}
+    </div>`;
+  }
+
+  const nextLocked = SKINS.find(s => !isSkinUnlocked(s));
+  const progressHTML = nextLocked
+    ? `<div style="font-family:'Nunito',sans-serif;font-size:0.68rem;color:#666;text-align:center;">
+        Próxima skin: ${nextLocked.tag} ${nextLocked.name} — faltam <span style="color:#ffe566;font-weight:900">${Math.max(0, nextLocked.cost - totalScore).toLocaleString('pt-BR')} pts</span>
+       </div>`
+    : `<div style="font-family:'Nunito',sans-serif;font-size:0.68rem;color:#ffe566;text-align:center;">🏆 Todas as skins desbloqueadas!</div>`;
+
   ov.innerHTML=`
     <h1 style="font-size:2rem;">💀 Fim de Jogo!</h1>
     <p style="font-size:1.2rem;color:#ffe566;">Pontuação: <strong>${score}</strong></p>
-    <p style="color:#777;font-family:'Nunito',sans-serif;font-size:0.8rem;">Nível ${level} · Skin: ${selectedSkin.name}</p>
-    <div id="skin-section"><h3>✦ TROQUE DE SKIN? ✦</h3><div id="skin-grid"></div></div>
+    <p style="color:#888;font-family:'Nunito',sans-serif;font-size:0.75rem;">Nível ${level} · Skin: ${selectedSkin.name} · 🏆 Total: <strong style="color:#ffe566">${totalScore.toLocaleString('pt-BR')}</strong> pts</p>
+    ${unlockHTML}
+    ${progressHTML}
+    <div id="skin-section"><h3>✦ TROQUE DE SKIN? ✦</h3><div id="total-score-bar">🏆 Total acumulado: <span id="total-val">0</span> pts</div><div id="skin-grid"></div></div>
     <button id="start-btn" onclick="startGame()" style="background:linear-gradient(135deg,#ff4466,#aa0033);padding:10px 30px;font-size:1.1rem;border:none;border-radius:50px;color:#fff;font-family:'Fredoka One',cursive;cursor:pointer;box-shadow:0 5px 0 #550011;letter-spacing:1px;">🔄 Jogar Novamente</button>
   `;
   ov.style.display='flex';
   buildSkinGrid();
-  const idx=SKINS.indexOf(selectedSkin);
-  document.querySelectorAll('.skin-card')[idx]?.classList.add('selected');
+  // Mantém skin atual selecionada visualmente
+  document.querySelectorAll('.skin-card').forEach(c=>{
+    const lbl=c.querySelector('.skin-label');
+    if(lbl&&lbl.textContent===selectedSkin.name&&isSkinUnlocked(selectedSkin)) c.classList.add('selected');
+  });
 }
 
 async function startGame(){
