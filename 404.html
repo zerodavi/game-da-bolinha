@@ -123,8 +123,8 @@
     background:rgba(0,0,0,0.92); border-radius:10px;
     display:flex; flex-direction:column; align-items:center;
     justify-content:flex-start;
-    gap:8px; z-index:10; backdrop-filter:blur(4px);
-    padding:12px 10px; overflow-y:auto;
+    gap:5px; z-index:10; backdrop-filter:blur(4px);
+    padding:8px 10px 10px; overflow-y:auto;
     -webkit-overflow-scrolling:touch;
   }
   #overlay h1 {
@@ -138,14 +138,14 @@
     font-size:clamp(0.7rem,2.2vw,0.85rem); text-align:center;
   }
   #skin-section h3 {
-    color:#888; font-size:0.72rem; letter-spacing:2px;
+    color:#888; font-size:0.65rem; letter-spacing:2px;
     font-family:'Nunito',sans-serif; font-weight:900;
-    text-align:center; margin-bottom:6px;
+    text-align:center; margin-bottom:4px;
   }
-  #skin-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  #skin-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
   .skin-card {
-    display:flex; flex-direction:column; align-items:center; gap:3px;
-    padding:7px 4px 5px; border-radius:10px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:5px 3px 4px; border-radius:10px; cursor:pointer;
     border:2px solid rgba(255,255,255,0.07); background:rgba(255,255,255,0.03);
     transition:all 0.15s; user-select:none;
   }
@@ -1447,37 +1447,43 @@ setupMobileBtn('btn-shoot', null, ()=>{
 //  GAME OVER / UI
 // ══════════════════════════════
 function showGameOver(){
-  // Adiciona pontos ao total acumulado
   const newlyUnlocked = addToTotal(score);
 
   const ov=document.getElementById('overlay');
+
   let unlockHTML = '';
   if(newlyUnlocked.length > 0){
-    unlockHTML = `<div style="background:rgba(255,229,102,0.12);border:1px solid #ffe566;border-radius:10px;padding:8px 14px;text-align:center;">
-      <div style="font-size:0.75rem;color:#ffe566;font-family:'Nunito',sans-serif;font-weight:900;letter-spacing:1px;">✨ SKIN DESBLOQUEADA!</div>
-      ${newlyUnlocked.map(s=>`<div style="font-size:1rem;margin-top:2px;">${s.tag} ${s.name}</div>`).join('')}
+    unlockHTML = `<div style="background:rgba(255,229,102,0.12);border:1px solid #ffe566;border-radius:8px;padding:5px 12px;text-align:center;width:100%;">
+      <span style="font-size:0.7rem;color:#ffe566;font-family:'Nunito',sans-serif;font-weight:900;">✨ DESBLOQUEADA: </span>
+      ${newlyUnlocked.map(s=>`<span style="font-size:0.85rem;">${s.tag} ${s.name}</span>`).join(' · ')}
     </div>`;
   }
 
   const nextLocked = SKINS.find(s => !isSkinUnlocked(s));
   const progressHTML = nextLocked
-    ? `<div style="font-family:'Nunito',sans-serif;font-size:0.68rem;color:#666;text-align:center;">
-        Próxima skin: ${nextLocked.tag} ${nextLocked.name} — faltam <span style="color:#ffe566;font-weight:900">${Math.max(0, nextLocked.cost - totalScore).toLocaleString('pt-BR')} pts</span>
+    ? `<div style="font-family:'Nunito',sans-serif;font-size:0.63rem;color:#555;text-align:center;">
+        Próxima: ${nextLocked.tag} ${nextLocked.name} — faltam <span style="color:#ffe566;font-weight:900">${Math.max(0, nextLocked.cost - totalScore).toLocaleString('pt-BR')} pts</span>
        </div>`
-    : `<div style="font-family:'Nunito',sans-serif;font-size:0.68rem;color:#ffe566;text-align:center;">🏆 Todas as skins desbloqueadas!</div>`;
+    : `<div style="font-family:'Nunito',sans-serif;font-size:0.63rem;color:#ffe566;text-align:center;">🏆 Todas as skins desbloqueadas!</div>`;
 
   ov.innerHTML=`
-    <h1 style="font-size:2rem;">💀 Fim de Jogo!</h1>
-    <p style="font-size:1.2rem;color:#ffe566;">Pontuação: <strong>${score}</strong></p>
-    <p style="color:#888;font-family:'Nunito',sans-serif;font-size:0.75rem;">Nível ${level} · Skin: ${selectedSkin.name} · 🏆 Total: <strong style="color:#ffe566">${totalScore.toLocaleString('pt-BR')}</strong> pts</p>
+    <h1 style="font-size:1.6rem;margin:0;">💀 Fim de Jogo!</h1>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;">
+      <span style="font-size:1rem;color:#ffe566;font-family:'Nunito',sans-serif;">🎯 <strong>${score}</strong> pts</span>
+      <span style="font-size:0.72rem;color:#666;font-family:'Nunito',sans-serif;">Nível ${level} · ${selectedSkin.name}</span>
+      <span style="font-size:0.72rem;color:#888;font-family:'Nunito',sans-serif;">🏆 Total: <strong style="color:#ffe566">${totalScore.toLocaleString('pt-BR')}</strong></span>
+    </div>
     ${unlockHTML}
     ${progressHTML}
-    <div id="skin-section"><h3>✦ TROQUE DE SKIN? ✦</h3><div id="total-score-bar">🏆 Total acumulado: <span id="total-val">0</span> pts</div><div id="skin-grid"></div></div>
-    <button id="start-btn" onclick="startGame()" style="background:linear-gradient(135deg,#ff4466,#aa0033);padding:10px 30px;font-size:1.1rem;border:none;border-radius:50px;color:#fff;font-family:'Fredoka One',cursive;cursor:pointer;box-shadow:0 5px 0 #550011;letter-spacing:1px;">🔄 Jogar Novamente</button>
+    <button id="start-btn" onclick="startGame()" style="background:linear-gradient(135deg,#ff4466,#aa0033);padding:9px 28px;font-size:1rem;border:none;border-radius:50px;color:#fff;font-family:'Fredoka One',cursive;cursor:pointer;box-shadow:0 4px 0 #550011;letter-spacing:1px;flex-shrink:0;">🔄 Jogar Novamente</button>
+    <div id="skin-section" style="width:100%;">
+      <h3 style="margin-bottom:3px;">✦ TROCAR SKIN? ✦</h3>
+      <div id="total-score-bar">🏆 Total: <span id="total-val">0</span> pts</div>
+      <div id="skin-grid"></div>
+    </div>
   `;
   ov.style.display='flex';
   buildSkinGrid();
-  // Mantém skin atual selecionada visualmente
   document.querySelectorAll('.skin-card').forEach(c=>{
     const lbl=c.querySelector('.skin-label');
     if(lbl&&lbl.textContent===selectedSkin.name&&isSkinUnlocked(selectedSkin)) c.classList.add('selected');
