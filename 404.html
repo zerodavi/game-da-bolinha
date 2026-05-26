@@ -251,6 +251,54 @@
     color:#555; letter-spacing:1px; text-transform:uppercase;
   }
 
+  /* ═══════════════════════════════
+     MODO PAISAGEM MOBILE — fullscreen
+  ═══════════════════════════════ */
+  #game-wrapper.landscape-full {
+    position:fixed; inset:0;
+  }
+  #game-wrapper.landscape-full #hud {
+    position:absolute; top:0; left:0; right:0; z-index:20;
+    background:rgba(0,0,0,0.45);
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    padding:3px 10px;
+    padding-top:max(3px, env(safe-area-inset-top));
+    flex:none;
+    gap:8px;
+  }
+  #game-wrapper.landscape-full #canvas-outer {
+    position:fixed; inset:0;
+    height:100vh !important;
+    height:100dvh !important;
+    align-items:center;
+  }
+  #game-wrapper.landscape-full #mobile-controls {
+    position:absolute; bottom:0; left:0; right:0; z-index:20;
+    background:rgba(0,0,0,0.35);
+    border-top:1px solid rgba(255,255,255,0.06);
+    padding:3px 16px max(3px, env(safe-area-inset-bottom));
+  }
+  #game-wrapper.landscape-full #mobile-controls.visible {
+    display:flex;
+  }
+  /* Botões menores em paisagem para não cobrir o jogo */
+  #game-wrapper.landscape-full .ctrl-btn {
+    width:50px; height:50px; font-size:1.2rem;
+  }
+  #game-wrapper.landscape-full #btn-jump {
+    width:56px; height:56px; font-size:1.4rem;
+  }
+  #game-wrapper.landscape-full #btn-shoot {
+    width:52px; height:52px; font-size:1.25rem;
+  }
+  #game-wrapper.landscape-full .hud-item { font-size:0.8rem; }
+  #game-wrapper.landscape-full .hud-item .val { font-size:0.9rem; }
+  #game-wrapper.landscape-full .hud-item .label { font-size:0.58rem; }
+  #game-wrapper.landscape-full #skin-badge { font-size:0.72rem; padding:2px 8px; }
+  #game-wrapper.landscape-full #mute-btn {
+    width:28px !important; height:28px !important; font-size:0.85rem !important;
+  }
+
   /* Botões menores em telas muito pequenas */
   @media (max-width:360px) {
     .ctrl-btn { width:56px; height:56px; font-size:1.4rem; }
@@ -341,43 +389,73 @@ function isTouchDevice(){
   return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 }
 
+function isLandscapeMobile(){
+  return isTouchDevice() && window.innerWidth > window.innerHeight;
+}
+
 function resizeCanvas(){
   const hud  = document.getElementById('hud');
   const mc   = document.getElementById('mobile-controls');
   const hint = document.getElementById('controls-hint');
+  const wrapper = document.getElementById('game-wrapper');
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  const hudH  = hud  ? hud.getBoundingClientRect().height : 0;
-  const ctrlH = (mc  && mc.classList.contains('visible'))
-                  ? mc.getBoundingClientRect().height : 0;
-  const hintH = (hint && hint.style.display !== 'none')
-                  ? hint.getBoundingClientRect().height : 0;
+  if(isLandscapeMobile()){
+    // MODO PAISAGEM: canvas ocupa 100% da tela, HUD e controles ficam em overlay
+    wrapper.classList.add('landscape-full');
 
-  // No nudge - use all available space
-  const nudge = 0;
+    // Mede as sobreposições (depois de aplicar a classe)
+    const hudH  = hud  ? hud.getBoundingClientRect().height : 0;
+    const ctrlH = (mc && mc.classList.contains('visible'))
+                    ? mc.getBoundingClientRect().height : 0;
 
-  // Available height after fixed rows
-  const availH = vh - hudH - ctrlH - hintH - 2;
-  const availW = vw;
+    // Disponível em altura considerando apenas as faixas sobrepostas
+    // O canvas vai de fullscreen menos as bandas visíveis de HUD e controles
+    const availH = vh;   // fullscreen total
+    const availW = vw;
 
-  const scaleW = availW / GAME_W;
-  const scaleH = availH / GAME_H;
-  // Cap at 1.0 to avoid blurry upscale on large screens;
-  // on mobile fill fully (no cap)
-  const isMob = isTouchDevice();
-  scaleFactor = isMob ? Math.min(scaleW, scaleH) : Math.min(scaleW, scaleH, 1.0);
+    const scaleW = availW / GAME_W;
+    const scaleH = availH / GAME_H;
+    scaleFactor  = Math.min(scaleW, scaleH);
 
-  const scaler = document.getElementById('canvas-scaler');
-  scaler.style.width     = GAME_W + 'px';
-  scaler.style.height    = GAME_H + 'px';
-  scaler.style.transform = `scale(${scaleFactor})`;
-  scaler.style.marginTop = nudge + 'px';
+    const scaler = document.getElementById('canvas-scaler');
+    scaler.style.width     = GAME_W + 'px';
+    scaler.style.height    = GAME_H + 'px';
+    scaler.style.transform = `scale(${scaleFactor})`;
+    scaler.style.marginTop = '0px';
 
-  const outer = document.getElementById('canvas-outer');
-  // Height = scaled canvas + nudge, so nothing is clipped
-  outer.style.height = Math.ceil(GAME_H * scaleFactor + nudge) + 'px';
+    const outer = document.getElementById('canvas-outer');
+    outer.style.height = ''; // deixa o CSS fixed controlar
+
+  } else {
+    // MODO RETRATO / DESKTOP: layout normal em colunas
+    wrapper.classList.remove('landscape-full');
+
+    const hudH  = hud  ? hud.getBoundingClientRect().height : 0;
+    const ctrlH = (mc && mc.classList.contains('visible'))
+                    ? mc.getBoundingClientRect().height : 0;
+    const hintH = (hint && hint.style.display !== 'none')
+                    ? hint.getBoundingClientRect().height : 0;
+
+    const availH = vh - hudH - ctrlH - hintH - 2;
+    const availW = vw;
+
+    const scaleW = availW / GAME_W;
+    const scaleH = availH / GAME_H;
+    const isMob  = isTouchDevice();
+    scaleFactor  = isMob ? Math.min(scaleW, scaleH) : Math.min(scaleW, scaleH, 1.0);
+
+    const scaler = document.getElementById('canvas-scaler');
+    scaler.style.width     = GAME_W + 'px';
+    scaler.style.height    = GAME_H + 'px';
+    scaler.style.transform = `scale(${scaleFactor})`;
+    scaler.style.marginTop = '0px';
+
+    const outer = document.getElementById('canvas-outer');
+    outer.style.height = Math.ceil(GAME_H * scaleFactor) + 'px';
+  }
 }
 
 window.addEventListener('resize', resizeCanvas);
