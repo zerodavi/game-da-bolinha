@@ -100,17 +100,16 @@
     min-height:0;
     width:100%;
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     justify-content:center;
-    /* nudge canvas a bit lower inside its area */
-    padding-top:6%;
     overflow:hidden;
     position:relative;
   }
   #canvas-scaler {
     position:relative;
-    transform-origin:center center;
+    transform-origin:top center;
     flex-shrink:0;
+    /* JS sets margin-top to nudge down */
   }
   #canvas {
     display:block;
@@ -343,36 +342,42 @@ function isTouchDevice(){
 }
 
 function resizeCanvas(){
-  // Measure real available area from DOM (works in portrait & landscape)
-  const hud = document.getElementById('hud');
-  const mc  = document.getElementById('mobile-controls');
+  const hud  = document.getElementById('hud');
+  const mc   = document.getElementById('mobile-controls');
   const hint = document.getElementById('controls-hint');
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // Heights of fixed elements (0 if not visible)
-  const hudH  = hud  ? hud.getBoundingClientRect().height  : 0;
-  const ctrlH = (mc && mc.classList.contains('visible'))
-                  ? mc.getBoundingClientRect().height  : 0;
+  const hudH  = hud  ? hud.getBoundingClientRect().height : 0;
+  const ctrlH = (mc  && mc.classList.contains('visible'))
+                  ? mc.getBoundingClientRect().height : 0;
   const hintH = (hint && hint.style.display !== 'none')
                   ? hint.getBoundingClientRect().height : 0;
 
-  // Available for canvas (subtract fixed rows + small gap padding)
-  const availH = vh - hudH - ctrlH - hintH - 4;
+  // Nudge: push canvas a bit down (max 5% of available, capped at 20px)
+  const nudge = Math.min(Math.floor((vh - hudH - ctrlH - hintH) * 0.05), 20);
+
+  // Available height after fixed rows AND nudge
+  const availH = vh - hudH - ctrlH - hintH - nudge - 2;
   const availW = vw;
 
   const scaleW = availW / GAME_W;
   const scaleH = availH / GAME_H;
-  scaleFactor = Math.min(scaleW, scaleH);
+  // Cap at 1.0 to avoid blurry upscale on large screens;
+  // on mobile fill fully (no cap)
+  const isMob = isTouchDevice();
+  scaleFactor = isMob ? Math.min(scaleW, scaleH) : Math.min(scaleW, scaleH, 1.0);
 
   const scaler = document.getElementById('canvas-scaler');
-  scaler.style.width  = GAME_W + 'px';
-  scaler.style.height = GAME_H + 'px';
+  scaler.style.width     = GAME_W + 'px';
+  scaler.style.height    = GAME_H + 'px';
   scaler.style.transform = `scale(${scaleFactor})`;
+  scaler.style.marginTop = nudge + 'px';
 
   const outer = document.getElementById('canvas-outer');
-  outer.style.height = Math.ceil(GAME_H * scaleFactor) + 'px';
+  // Height = scaled canvas + nudge, so nothing is clipped
+  outer.style.height = Math.ceil(GAME_H * scaleFactor + nudge) + 'px';
 }
 
 window.addEventListener('resize', resizeCanvas);
