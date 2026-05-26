@@ -330,6 +330,21 @@
   #game-wrapper.landscape-full #mute-btn {
     width:28px !important; height:28px !important; font-size:0.85rem !important;
   }
+  /* Remove retângulo visível do canvas em paisagem */
+  #game-wrapper.landscape-full #canvas {
+    border:none !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+  #game-wrapper.landscape-full #canvas-outer {
+    background:transparent !important;
+  }
+  #game-wrapper.landscape-full #canvas-scaler {
+    background:transparent !important;
+  }
+  /* Fundo do body igual ao céu do jogo para não aparecer borda lateral */
+  #game-wrapper.landscape-full ~ * { background:#0d0d2a; }
+  body.landscape-mode { background:#0d0d2a !important; }
 
   /* Botões menores em telas muito pequenas */
   @media (max-width:360px) {
@@ -438,6 +453,7 @@ function resizeCanvas(){
   if(isLandscapeMobile()){
     // MODO PAISAGEM: canvas ocupa 100% da tela, HUD e controles ficam em overlay
     wrapper.classList.add('landscape-full');
+    document.body.classList.add('landscape-mode');
 
     // Mede as sobreposições (depois de aplicar a classe)
     const hudH  = hud  ? hud.getBoundingClientRect().height : 0;
@@ -465,6 +481,7 @@ function resizeCanvas(){
   } else {
     // MODO RETRATO / DESKTOP: layout normal em colunas
     wrapper.classList.remove('landscape-full');
+    document.body.classList.remove('landscape-mode');
 
     const hudH  = hud  ? hud.getBoundingClientRect().height : 0;
     const ctrlH = (mc && mc.classList.contains('visible'))
