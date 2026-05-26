@@ -53,32 +53,32 @@
     flex:0 0 auto;
     width:100%;
     display:flex;
-    gap:8px;
+    gap:12px;
     align-items:center;
     justify-content:center;
     flex-wrap:wrap;
     background:rgba(255,255,255,0.05);
     border-bottom:1px solid rgba(255,255,255,0.08);
-    padding:6px 10px;
+    padding:10px 14px;
     /* safe area top (notch) */
-    padding-top:max(6px, env(safe-area-inset-top));
+    padding-top:max(10px, env(safe-area-inset-top));
   }
   .hud-item {
-    display:flex; align-items:center; gap:4px;
-    color:#fff; font-size:0.88rem;
+    display:flex; align-items:center; gap:5px;
+    color:#fff; font-size:1.05rem;
     white-space:nowrap;
   }
   .hud-item .label {
-    color:#888; font-size:0.65rem;
+    color:#888; font-size:0.75rem;
     font-family:'Nunito',sans-serif;
     text-transform:uppercase;
   }
-  .hud-item .val { font-size:1rem; color:#ffe566; }
-  #lives-display { display:flex; gap:2px; }
-  .heart { font-size:1rem; line-height:1; }
+  .hud-item .val { font-size:1.2rem; color:#ffe566; }
+  #lives-display { display:flex; gap:3px; }
+  .heart { font-size:1.15rem; line-height:1; }
   .heart.lost { filter:grayscale(1); opacity:0.3; }
   #skin-badge {
-    font-size:0.7rem; padding:2px 8px; border-radius:20px;
+    font-size:0.82rem; padding:3px 11px; border-radius:20px;
     background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
     color:#ddd; font-family:'Nunito',sans-serif; font-weight:700;
     white-space:nowrap;
@@ -87,8 +87,8 @@
     background:rgba(255,255,255,0.08) !important;
     border:1px solid rgba(255,255,255,0.15) !important;
     color:#fff !important; border-radius:50% !important;
-    width:28px !important; height:28px !important;
-    font-size:0.85rem !important; cursor:pointer;
+    width:34px !important; height:34px !important;
+    font-size:1rem !important; cursor:pointer;
     display:flex !important; align-items:center !important;
     justify-content:center !important; padding:0 !important;
     flex-shrink:0 !important;
@@ -102,6 +102,8 @@
     display:flex;
     align-items:center;
     justify-content:center;
+    /* nudge canvas a bit lower inside its area */
+    padding-top:6%;
     overflow:hidden;
     position:relative;
   }
@@ -362,7 +364,7 @@ function resizeCanvas(){
 
   const scaleW = availW / GAME_W;
   const scaleH = availH / GAME_H;
-  scaleFactor = Math.min(scaleW, scaleH, 1.0);
+  scaleFactor = Math.min(scaleW, scaleH);
 
   const scaler = document.getElementById('canvas-scaler');
   scaler.style.width  = GAME_W + 'px';
